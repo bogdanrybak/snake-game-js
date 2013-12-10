@@ -48,6 +48,7 @@ var Game = function(canvasId) {
   };
 
   var draw = function() {
+    clearCanvas(ctx);
     snake.move(direction);
     if (food) {
       food.draw();
@@ -55,7 +56,9 @@ var Game = function(canvasId) {
 
     if (snake.ate(food)) {
       food = new Food();
+      food.draw();
     }
+    snake.draw();
   };
 
   var init = function() {
@@ -113,6 +116,7 @@ var Game = function(canvasId) {
       axis: 'x',
       sign: -1
     };
+    this.length = 0;
 
     this.bottomEdge = function () {
       return this.y + this.height;
@@ -134,6 +138,7 @@ var Game = function(canvasId) {
       } else {
         this.segments.unshift(block);
       }
+      this.length++;
     };
 
     this.segments = [];
@@ -144,7 +149,6 @@ var Game = function(canvasId) {
   }
 
   Snake.prototype.draw = function() {
-    clearCanvas(ctx);
 
     ctx.fillStyle = this.color;
     for (var i = 0; i < this.segments.length; i++) {
@@ -173,7 +177,6 @@ var Game = function(canvasId) {
       // Draw the next segment and remove the previous one
       this.addSegment(this.x, this.y);
       this.segments.pop();
-      this.draw();
     }
 
     // Assign new direction to the snake
@@ -186,7 +189,15 @@ var Game = function(canvasId) {
 
   };
 
-  Sanke.prototype.ate = function(food) {
+  Snake.prototype.ate = function(food) {
+    var overlapX = this.x >= food.x && this.x <= (food.x + food.size);
+    var overlapY = this.y >= food.y && this.y <= (food.y + food.size);
+    if (overlapX && overlapY) {
+      var lastSegment = this.segments[this.segments.length - 1];
+      this.addSegment(lastSegment.x + this.width * this.direction.sign, lastSegment.y + this.height * this.direction.sign, true);
+      return true;
+    }
+    return false;
   };
 
   function Food(x, y) {
