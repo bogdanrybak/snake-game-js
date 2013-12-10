@@ -5,9 +5,9 @@
  * @type {Object}
  * @param {string} [canvasId] id of the canvas where the game needs to take place
  */
-var Game = function(canvasId) {
+var Game = function(canvasId, scoreBoardId) {
   var ctx = document.getElementById(canvasId).getContext('2d');
-
+  var scoreBoard = document.getElementById(scoreBoardId);
   var clearCanvas = function() {
     // Store the current transformation matrix
     ctx.save();
@@ -24,7 +24,7 @@ var Game = function(canvasId) {
   var stage = {
     width: 480,
     height: 320,
-    speed: 600 // speed of the game - lower is faster
+    speed: 200 // speed of the game - lower is faster
   };
 
   var KEYS = {
@@ -38,7 +38,8 @@ var Game = function(canvasId) {
    * Game related variables and init
    */
   var intervalId;
-  var snake = new Snake(stage.width / 2, stage.height / 2, 3);
+  var snakeStartingLength = 3;
+  var snake = new Snake(stage.width / 2, stage.height / 2, snakeStartingLength);
   var food = new Food();
 
   // starting input direction
@@ -49,6 +50,7 @@ var Game = function(canvasId) {
 
   var draw = function() {
     clearCanvas(ctx);
+
     snake.move(direction);
     if (food) {
       food.draw();
@@ -58,7 +60,13 @@ var Game = function(canvasId) {
       food = new Food();
       food.draw();
     }
+
+    if (snake.selfCollided()) {
+      deadScreen();
+    }
+
     snake.draw();
+    updateScore();
   };
 
   var init = function() {
@@ -91,6 +99,10 @@ var Game = function(canvasId) {
 
   document.onkeydown = keyListener;
 
+  var updateScore = function() {
+    scoreBoard.innerHTML = snake.length;
+  };
+
   var deadScreen = function() {
     stop();
     ctx.fillStyle = 'black';
@@ -108,8 +120,8 @@ var Game = function(canvasId) {
   function Snake(x, y, segments) {
     this.height = 20;
     this.width = this.height;
-    this.x = x;
-    this.y = y;
+    this.x = snapToGrid(x);
+    this.y = snapToGrid(y);
     this.speed = this.height;
     this.color = 'rgb(200,0,0)';
     this.direction = {
@@ -139,7 +151,6 @@ var Game = function(canvasId) {
       } else {
         this.segments.unshift(block);
       }
-      this.length++;
     };
 
     this.segments = [];
@@ -195,11 +206,23 @@ var Game = function(canvasId) {
   };
 
   Snake.prototype.ate = function(food) {
-    var overlapX = this.x >= food.x && this.x <= (food.x + food.size);
-    var overlapY = this.y >= food.y && this.y <= (food.y + food.size);
+    var overlapX = this.x == food.x;
+    var overlapY = this.y == food.y;
     if (overlapX && overlapY) {
       this.addSegment(this.tailPosition.x, this.tailPosition.y, true);
+      this.length++;
       return true;
+    }
+    return false;
+  };
+
+  Snake.prototype.selfCollided = function() {
+    // start counting from one ignoring the head segment
+    for (var i = 1; i < this.segments.length; i++) {
+      if (this.segments[i].x === this.segments[0].x &&
+          this.segments[i].y === this.segments[0].y) {
+        return true;
+      }
     }
     return false;
   };
@@ -230,5 +253,5 @@ var Game = function(canvasId) {
   };
 };
 
-var game = new Game('game-screen');
+var game = new Game('game-screen', 'score');
 game.init();
