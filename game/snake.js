@@ -117,6 +117,7 @@ var Game = function(canvasId) {
       sign: -1
     };
     this.length = 0;
+    this.tailPosition = {};
 
     this.bottomEdge = function () {
       return this.y + this.height;
@@ -176,6 +177,10 @@ var Game = function(canvasId) {
     } else {
       // Draw the next segment and remove the previous one
       this.addSegment(this.x, this.y);
+      this.tailPosition = {
+        x: this.segments[this.segments.length - 1].x,
+        y: this.segments[this.segments.length - 1].y
+      };
       this.segments.pop();
     }
 
@@ -193,8 +198,7 @@ var Game = function(canvasId) {
     var overlapX = this.x >= food.x && this.x <= (food.x + food.size);
     var overlapY = this.y >= food.y && this.y <= (food.y + food.size);
     if (overlapX && overlapY) {
-      var lastSegment = this.segments[this.segments.length - 1];
-      this.addSegment(lastSegment.x + this.width * this.direction.sign, lastSegment.y + this.height * this.direction.sign, true);
+      this.addSegment(this.tailPosition.x, this.tailPosition.y, true);
       return true;
     }
     return false;
