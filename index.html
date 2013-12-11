@@ -3,13 +3,48 @@
     <title>Snake JS</title>
   </head>
   <style>
+    body {
+      font-family: Helvetica, Arial, Verdana, sans-serif;
+      color: #EBFAD5;
+      background: #1E1E20;
+    }
     #game-screen {
-      border: 4px solid black;
+      border-radius: 2px;
+      border: 20px solid #292C2B;
+      background: #374140;
+    }
+    #game-container {
+      margin: 0 auto;
+      width: 480px;
+      height: 320px;
+    }
+    #score {
+      font-weight: bold;
+    }
+    #restart {
+      border-radius: 2px;
+      cursor: pointer;
+      padding: 5px 8px;
+      margin: 0 20px;
+      border: 0;
+      background: #374140;
+      color: #EBFAD5;
+    }
+    #restart:hover {
+      background: #292C2B;
     }
   </style>
   <body>
-    <canvas id="game-screen" width="480" height="320"></canvas>
-    <p>Score: <span id="score">0</span></p>
+    <div id="game-container">
+      <canvas id="game-screen" width="480" height="320"></canvas>
+      <p>Score <span id="score">0</span>
+      <button id="restart" type="button" onClick="game.start();">Restart</button>
+      </p>
+    </div>
     <script src="game/snake.js"></script>
+    <script>
+      var game = new Game('game-screen', 'score');
+      game.start();
+    </script>
   </body>
 </html>

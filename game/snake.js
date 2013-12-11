@@ -3,7 +3,8 @@
 /**
  * Main game object
  * @type {Object}
- * @param {string} [canvasId] id of the canvas where the game needs to take place
+ * @param {string} canvasId id of the canvas where the game needs to take place
+ * @param {string} scoreBoardId id of the element where the score number will be displayed
  */
 var Game = function(canvasId, scoreBoardId) {
   var ctx = document.getElementById(canvasId).getContext('2d');
@@ -24,6 +25,7 @@ var Game = function(canvasId, scoreBoardId) {
   var stage = {
     width: 480,
     height: 320,
+    grid: 20, // size of the grid the snake and food are supposed to abide by
     speed: 200 // speed of the game - lower is faster
   };
 
@@ -34,13 +36,18 @@ var Game = function(canvasId, scoreBoardId) {
     down: 40
   };
 
+  var colors = {
+    snake: '#FFFFFF',
+    food: '#EC4A36'
+  };
+
   /**
    * Game related variables and init
    */
   var intervalId;
   var snakeStartingLength = 3;
-  var snake = new Snake(stage.width / 2, stage.height / 2, snakeStartingLength);
-  var food = new Food();
+  var snake;
+  var food;
 
   // starting input direction
   var direction = {
@@ -69,8 +76,17 @@ var Game = function(canvasId, scoreBoardId) {
     updateScore();
   };
 
-  var init = function() {
+  var start = function() {
+    clearCanvas(ctx);
+    // check if game already in progress
+    if (intervalId) { stop(); }
+
+    ctx.globalCompositeOperation = 'source-over';
+    // prepare the objects
+    snake = new Snake(stage.width / 2, stage.height / 2, snakeStartingLength);
+    food = new Food();
     snake.draw();
+    // start the game
     intervalId = window.setInterval(draw, stage.speed);
   };
 
@@ -105,25 +121,26 @@ var Game = function(canvasId, scoreBoardId) {
 
   var deadScreen = function() {
     stop();
-    ctx.fillStyle = 'black';
-    ctx.strokeStyle = 'black';
-    ctx.font = 'bold 20px sans-serif';
-    ctx.fillText('YOU DEAD', 50, 50);
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = colors.food;
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 30px sans-serif';
+    ctx.fillText('YOU DEAD', stage.width/2, stage.height/2);
   };
 
   /**
    * Snake constructor takes initial position of the snake and number of segments to start with
-   * @param {float} [x]
-   * @param {float} [y]
-   * @param {int} [segments] [number of segments the work should be costructed with]
+   * @param {float} x
+   * @param {float} y
+   * @param {int} segments number of segments the work should be costructed with
    */
   function Snake(x, y, segments) {
-    this.height = 20;
+    this.height = stage.grid;
     this.width = this.height;
     this.x = snapToGrid(x);
     this.y = snapToGrid(y);
     this.speed = this.height;
-    this.color = 'rgb(200,0,0)';
+    this.color = colors.snake;
     this.direction = {
       axis: 'x',
       sign: -1
@@ -228,10 +245,10 @@ var Game = function(canvasId, scoreBoardId) {
   };
 
   function Food(x, y) {
-    this.size = 20;
+    this.size = stage.grid;
     this.x = x || snapToGrid(Math.random() * (stage.width - this.size));
     this.y = y || snapToGrid(Math.random() * (stage.height - this.size));
-    this.color = '#377ABD';
+    this.color = colors.food;
 
     this.draw = function() {
       ctx.fillStyle = this.color;
@@ -241,17 +258,15 @@ var Game = function(canvasId, scoreBoardId) {
     };
   }
 
+  // Utility function to align a value to the grid
   function snapToGrid(coordinate) {
     coordinate = Math.floor(coordinate);
-    var remainder = coordinate % 20;
+    var remainder = coordinate % stage.grid;
     return coordinate - remainder;
   }
 
   return {
-    init: init,
+    start: start,
     stop: stop
   };
 };
-
-var game = new Game('game-screen', 'score');
-game.init();
